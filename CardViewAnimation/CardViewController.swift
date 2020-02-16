@@ -8,7 +8,19 @@
 
 import UIKit
 
-class CardViewController: UIViewController {
+class CardViewController: UIViewController, IsCardViewController {
+
+    weak var contentHeightProviderDelegate: ContentHeightProviderDelegate?
+
+    var contentHeight: Float {
+        let viewHeight = view.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
+        return Float(ceil(viewHeight))
+    }
 
     @IBOutlet weak var handleArea: UIView!
+
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        contentHeightProviderDelegate?.contentHeightProvider(self, didUpdateHeight: contentHeight)
+    }
 }
