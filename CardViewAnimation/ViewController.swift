@@ -20,6 +20,7 @@ class ViewController: UIViewController, CanContainCardViewController, ContentHei
   var collapseHeight: CGFloat = 138
   var cardHeight: CGFloat = 0
   var cardCornerRadius: CGFloat = 14
+  var currentCardState: CardState = .collapse
 
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -30,7 +31,9 @@ class ViewController: UIViewController, CanContainCardViewController, ContentHei
   func addPanGesture() {
     let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture(recognizer:)))
     cardViewController?.view.addGestureRecognizer(panGestureRecognizer)
+  }
 
+  func addTapGesture() {
     let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTapGesture))
     cardViewController?.view.addGestureRecognizer(tapGesture)
   }
@@ -41,6 +44,7 @@ class ViewController: UIViewController, CanContainCardViewController, ContentHei
 
   @objc func handleTapGesture(recognizer: UITapGestureRecognizer) {
     print("tap gesture tapped")
+    handleCardTap(recognizer: recognizer)
   }
 
   func addCardViewController(_ view: IsCardViewController) {
@@ -116,8 +120,10 @@ protocol CanContainCardViewController {
   var cardHeight: CGFloat { get set }
   var collapseHeight: CGFloat { get set }
   var cardCornerRadius: CGFloat { get set }
+  var currentCardState: CardState { get set }
 
   func addPanGesture()
+  func addTapGesture()
   func addCardViewController(_ view: IsCardViewController)
   func setCardViewBottom(with constant: CGFloat)
   func getCardViewBottom() -> CGFloat
@@ -131,6 +137,7 @@ extension CanContainCardViewController where Self: UIViewController {
     /// add child view
     addChildView(containerView)
     addPanGesture()
+    addTapGesture()
   }
 
   func addChildView(_ containerView: UIView) {
@@ -146,6 +153,17 @@ extension CanContainCardViewController where Self: UIViewController {
     cardViewController.view.addSubview(visualEffectView)
     cardViewController.view.sendSubviewToBack(visualEffectView)
     visualEffectView.pinViewToEdgesOfSuperview()
+  }
+
+  func handleCardTap(recognizer: UITapGestureRecognizer) {
+    let currentBottomConstant = getCardViewBottom()
+    if abs(currentBottomConstant) == 0 {
+      let duration: Double = Double(collapseHeight / 3 / 300)
+      setCardHeight(with: cardHeight)
+      animateToPositionY(duration, positionY: collapseHeight)
+      /// animate blur background
+      animateBlurEffect(duration, finalCardState: .collapse)
+    }
   }
 
   func handleCardPan(recognizer: UIPanGestureRecognizer) {
